@@ -8,17 +8,43 @@ sheet_name = 'NKE Balance Annual'
 # Read the Excel sheet into a DataFrame, specifying the openpyxl engine
 df = pd.read_excel(file_path, sheet_name=sheet_name, header=None, engine='openpyxl')
 
-# Extract the x-axis data from cells A2-A5
-x_axis = df.iloc[1:5, 0].values
+# Find the row index where "Breakdown" is located
+breakdown_row = df[df.iloc[:, 0].str.contains("Breakdown", na=False)].index[0]
 
-# Define the sections and their corresponding y-axis data
-sections = {
-    "Total Assets": df.iloc[6:10, 0].values,
-    "Total Liabilities Net Minority Interest": df.iloc[11:15, 0].values,
-    "Total Equity Gross Minority Interest": df.iloc[16:20, 0].values,
-    "Total Capitalization": df.iloc[21:25, 0].values,
-    "Common Stock Equity": df.iloc[26:30, 0].values
-}
+# Extract the x-axis data dynamically, starting from the row after "Breakdown"
+x_axis_data = []
+for value in df.iloc[breakdown_row + 1:, 0]:
+    if isinstance(value, str) and not value.isdigit():
+        break
+    x_axis_data.append(value)
+
+# Convert x_axis_data to a numpy array
+x_axis = pd.Series(x_axis_data).values
+
+# Initialize an empty dictionary to hold sections
+sections = {}
+
+# Iterate through the DataFrame starting from the row after "Breakdown"
+current_section = None
+current_data = []
+
+for i in range(breakdown_row + 1, len(df)):
+    cell_value = df.iloc[i, 0]
+    if pd.isna(cell_value):  # Check for blank cell
+        continue
+    if isinstance(cell_value, str) and not cell_value.isdigit():
+        # If a new section is found, save the current section
+        if current_section:
+            sections[current_section] = current_data
+        current_section = cell_value
+        current_data = []
+    else:
+        # Append data to the current section
+        current_data.append(cell_value)
+
+# Add the last section if any
+if current_section:
+    sections[current_section] = current_data
 
 # Plotting each section with "Nike" included in the titles and y-axis labels
 for section, y_axis in sections.items():
