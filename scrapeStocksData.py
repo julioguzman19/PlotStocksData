@@ -39,8 +39,11 @@ for i in range(breakdown_row + 1, len(df)):
         current_section = cell_value
         current_data = []
     else:
-        # Append data to the current section
-        current_data.append(cell_value)
+        # Replace '--' with 0 and append data to the current section
+        if cell_value == '--':
+            current_data.append(0)
+        else:
+            current_data.append(cell_value)
 
 # Add the last section if any
 if current_section:
@@ -48,13 +51,23 @@ if current_section:
 
 # Plotting each section with "Nike" included in the titles and y-axis labels
 for section, y_axis in sections.items():
-    plt.figure()
-    plt.plot(x_axis, y_axis, marker='o')
-    plt.title(f"Nike {section}")
-    plt.xlabel('Date')
-    plt.ylabel(f"Nike {section}")
-    plt.grid(True)
-    plt.xticks(rotation=45)
-    plt.tight_layout()
-    plt.savefig(f"{section.replace(' ', '_')}.png")
-    plt.show()
+    # Print lengths and contents for debugging
+    print(f"Section: {section}")
+    print(f"x_axis length: {len(x_axis)}, y_axis length: {len(y_axis)}")
+    print(f"x_axis: {x_axis}")
+    print(f"y_axis: {y_axis}")
+
+    # Ensure x_axis and y_axis have the same length before plotting
+    if len(x_axis) == len(y_axis):
+        plt.figure()
+        plt.plot(x_axis, y_axis, marker='o')
+        plt.title(f"Nike {section}")
+        plt.xlabel('Date')
+        plt.ylabel(f"Nike {section}")
+        plt.grid(True)
+        plt.xticks(rotation=45)
+        plt.tight_layout()
+        plt.savefig(f"{section.replace(' ', '_')}.png")
+        plt.show()
+    else:
+        print(f"Error: Mismatched lengths for section '{section}'. Skipping plot.")
