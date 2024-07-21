@@ -38,7 +38,7 @@ def extract_x_axis_data(df, TTM_row):
         x_axis_data.append(value)
     return pd.Series(x_axis_data).values
 
-def extract_sections(df, TTM_row):
+def extract_sections(df, TTM_row, x_axis_len):
     sections = {}
     current_section = None
     current_data = []
@@ -50,8 +50,8 @@ def extract_sections(df, TTM_row):
         if isinstance(cell_value, str) and not cell_value.isdigit() and cell_value != '--':
             # If a new section is found, save the current section
             if current_section:
-                if len(current_data) > 4:
-                    current_data = current_data[-4:]  # Keep only the last 4 values
+                if len(current_data) > x_axis_len:
+                    current_data = current_data[-x_axis_len:]  # Match x_axis length
                 sections[current_section] = current_data
             current_section = cell_value
             current_data = []
@@ -67,8 +67,8 @@ def extract_sections(df, TTM_row):
                     print(f"Skipping non-numeric value: {cell_value}")
     
     if current_section:
-        if len(current_data) > 4:
-            current_data = current_data[-4:]  # Keep only the last 4 values
+        if len(current_data) > x_axis_len:
+            current_data = current_data[-x_axis_len:]  # Match x_axis length
         sections[current_section] = current_data
 
     return sections
@@ -100,7 +100,7 @@ def process_sheet(file_path, sheet_name):
         return
     
     x_axis = extract_x_axis_data(df, TTM_row)
-    sections = extract_sections(df, TTM_row)
+    sections = extract_sections(df, TTM_row, len(x_axis))
     
     # Determine the suffix and filter sections
     suffix = sheet_name.split()[-1]
