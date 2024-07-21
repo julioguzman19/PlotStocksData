@@ -1,3 +1,4 @@
+import os
 import pandas as pd
 import matplotlib.pyplot as plt
 
@@ -30,42 +31,43 @@ def extract_sections(df, TTM_row):
         cell_value = df.iloc[i, 0]
         if pd.isna(cell_value):  # Check for blank cell
             continue
-        if isinstance(cell_value, str) and not cell_value.isdigit():
+        if isinstance(cell_value, str) and not cell_value.isdigit() and cell_value != '--':
             # If a new section is found, save the current section
             if current_section:
                 if len(current_data) > 4:
-                    current_data = current_data[-4:]
-                elif len(current_data) == 5:
-                    current_data = current_data[1:]
+                    current_data = current_data[-4:]  # Keep only the last 4 values
                 sections[current_section] = current_data
             current_section = cell_value
             current_data = []
         else:
             if cell_value == '--':
-                current_data.append(0)
+                current_data.append(0)  # Replace '--' with 0
             else:
-                current_data.append(cell_value)
+                try:
+                    if isinstance(cell_value, str):
+                        cell_value = float(cell_value.replace(',', ''))
+                    current_data.append(cell_value)
+                except ValueError:
+                    print(f"Skipping non-numeric value: {cell_value}")
     
     if current_section:
         if len(current_data) > 4:
-            current_data = current_data[-4:]
-        elif len(current_data) == 5:
-            current_data = current_data[1:]
+            current_data = current_data[-4:]  # Keep only the last 4 values
         sections[current_section] = current_data
 
     return sections
 
-def plot_section(sheet_name, section, x_axis, y_axis):
-    sheet_prefix = sheet_name.split()[0]  # Extract the first word or letters from the sheet name
+def plot_section(folder_name, section, x_axis, y_axis):
     plt.figure()
     plt.plot(x_axis, y_axis, marker='o')
-    plt.title(f"{sheet_prefix} {section}")
+    plt.title(f"{folder_name} {section}")
     plt.xlabel('Date')
-    plt.ylabel(f"{sheet_prefix} {section}")
+    plt.ylabel(f"{folder_name} {section}")
     plt.grid(True)
     plt.xticks(rotation=45)
     plt.tight_layout()
-    plt.savefig(f"{sheet_name}_{section.replace(' ', '_')}.png")
+    # Save the plot to the specified folder
+    plt.savefig(os.path.join(folder_name, f"{section.replace(' ', '_')}.png"))
     plt.close()
 
 def process_sheet(file_path, sheet_name):
@@ -81,10 +83,17 @@ def process_sheet(file_path, sheet_name):
     
     x_axis = extract_x_axis_data(df, TTM_row)
     sections = extract_sections(df, TTM_row)
+    
+    # Create a folder for the plots
+    folder_name = f"{sheet_name.split()[-1]}_plots"
+    if not os.path.exists(folder_name):
+        os.makedirs(folder_name)
 
     for section, y_axis in sections.items():
+        print(f"Processing section: '{section}'")
+        print(f"x_axis length: {len(x_axis)}, y_axis length: {len(y_axis)}")
         if len(x_axis) == len(y_axis):
-            plot_section(sheet_name, section, x_axis, y_axis)
+            plot_section(folder_name, section, x_axis, y_axis)
         else:
             print(f"Error: Mismatched lengths for section '{section}'. Skipping plot.")
             print(f"Section '{section}' x_axis length: {len(x_axis)}, y_axis length: {len(y_axis)}")
