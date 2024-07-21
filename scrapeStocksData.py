@@ -2,6 +2,22 @@ import os
 import pandas as pd
 import matplotlib.pyplot as plt
 
+# Define the sections to include based on the sheet suffix
+SECTIONS_TO_INCLUDE = {
+    'Income': [
+        'Total Revenue', 'Cost of Revenue', 'Gross Profit', 
+        'Net Income Common Stockholders', 'Basic EPS', 
+        'Basic Average Shares', 'Total Expenses'
+    ],
+    'Balance': [
+        'Total Assets', 'Total Capitalization', 'Total Debt', 
+        'Ordinary Shares Number'
+    ],
+    'Cash': [
+        'Repurchase of Capital Stock', 'Free Cash Flow'
+    ]
+}
+
 def load_sheet_names(file_path):
     return pd.ExcelFile(file_path).sheet_names
 
@@ -86,19 +102,24 @@ def process_sheet(file_path, sheet_name):
     x_axis = extract_x_axis_data(df, TTM_row)
     sections = extract_sections(df, TTM_row)
     
+    # Determine the suffix and filter sections
+    suffix = sheet_name.split()[-1]
+    valid_sections = SECTIONS_TO_INCLUDE.get(suffix, [])
+    
     # Create a folder for the plots
-    folder_name = f"{sheet_name.split()[-1]}_plots"
+    folder_name = f"{suffix}_plots"
     if not os.path.exists(folder_name):
         os.makedirs(folder_name)
 
     for section, y_axis in sections.items():
-        print(f"Processing section: '{section}'")
-        print(f"x_axis length: {len(x_axis)}, y_axis length: {len(y_axis)}")
-        if len(x_axis) == len(y_axis):
-            plot_section(sheet_name, folder_name, section, x_axis, y_axis)
-        else:
-            print(f"Error: Mismatched lengths for section '{section}'. Skipping plot.")
-            print(f"Section '{section}' x_axis length: {len(x_axis)}, y_axis length: {len(y_axis)}")
+        if section in valid_sections:
+            print(f"Processing section: '{section}'")
+            print(f"x_axis length: {len(x_axis)}, y_axis length: {len(y_axis)}")
+            if len(x_axis) == len(y_axis):
+                plot_section(sheet_name, folder_name, section, x_axis, y_axis)
+            else:
+                print(f"Error: Mismatched lengths for section '{section}'. Skipping plot.")
+                print(f"Section '{section}' x_axis length: {len(x_axis)}, y_axis length: {len(y_axis)}")
 
 def main(file_path):
     sheet_names = load_sheet_names(file_path)
