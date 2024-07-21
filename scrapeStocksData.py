@@ -57,17 +57,19 @@ def extract_sections(df, TTM_row):
 
     return sections
 
-def plot_section(folder_name, section, x_axis, y_axis):
+def plot_section(sheet_name, folder_name, section, x_axis, y_axis):
+    sheet_prefix = sheet_name.split()[0]  # Extract the first word or letters from the sheet name
     plt.figure()
     plt.plot(x_axis, y_axis, marker='o')
-    plt.title(f"{folder_name} {section}")
+    plt.title(f"{sheet_prefix} {section}")
     plt.xlabel('Date')
-    plt.ylabel(f"{folder_name} {section}")
+    plt.ylabel(f"{sheet_prefix} {section}")
     plt.grid(True)
     plt.xticks(rotation=45)
     plt.tight_layout()
-    # Save the plot to the specified folder
-    plt.savefig(os.path.join(folder_name, f"{section.replace(' ', '_')}.png"))
+    # Save the plot to the specified folder with the sheet prefix
+    plot_filename = f"{sheet_prefix}_{section.replace(' ', '_')}.png"
+    plt.savefig(os.path.join(folder_name, plot_filename))
     plt.close()
 
 def process_sheet(file_path, sheet_name):
@@ -93,7 +95,7 @@ def process_sheet(file_path, sheet_name):
         print(f"Processing section: '{section}'")
         print(f"x_axis length: {len(x_axis)}, y_axis length: {len(y_axis)}")
         if len(x_axis) == len(y_axis):
-            plot_section(folder_name, section, x_axis, y_axis)
+            plot_section(sheet_name, folder_name, section, x_axis, y_axis)
         else:
             print(f"Error: Mismatched lengths for section '{section}'. Skipping plot.")
             print(f"Section '{section}' x_axis length: {len(x_axis)}, y_axis length: {len(y_axis)}")
