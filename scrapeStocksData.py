@@ -83,6 +83,11 @@ def plot_section(sheet_name, folder_name, section, x_axis, y_axis):
     plt.grid(True)
     plt.xticks(rotation=45)
     plt.tight_layout()
+    
+    # Annotate each point with its value
+    for i, txt in enumerate(y_axis):
+        plt.annotate(f"{txt:.2f}", (x_axis[i], y_axis[i]), textcoords="offset points", xytext=(0,10), ha='center')
+
     # Save the plot to the specified folder with the sheet prefix
     plot_filename = f"{sheet_prefix}_{section.replace(' ', '_')}.png"
     plt.savefig(os.path.join(folder_name, plot_filename))
