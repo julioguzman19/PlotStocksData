@@ -17,15 +17,15 @@ def add_slide_with_plots(prs, title, plot_files):
     title_placeholder.text = title
     
     # Add images to the slide
-    left = Inches(1)
+    left = Inches(0.5)
     top = Inches(1.5)
-    height = Inches(3.5)
+    height = Inches(3)
     for plot_file in plot_files:
         slide.shapes.add_picture(plot_file, left, top, height=height)
         left += Inches(4.5)  # Adjust position for the next image
         if left > Inches(6.5):
-            left = Inches(1)
-            top += Inches(4)  # Move to the next row
+            left = Inches(0.5)
+            top += Inches(3)  # Move to the next row
 
 # Function to extract the type of plot from the filename
 def get_plot_type(filename):
